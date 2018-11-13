@@ -35,6 +35,7 @@ endef
 CONFIGURE_ARGS += \
 	--disable-gui-build \
 	--disable-network-build \
+	--disable-scan-build \
 	--disable-pp-build \
 	--disable-doc-build \
 	--disable-foomatic-xml-install \
@@ -61,8 +62,41 @@ define Package/hplip/install
 	mv $(1)/usr/share/hplip-data $(1)/usr/share/hplip/data
 endef
 
+define Package/hplip-sane
+$(call Package/hplip/Default)
+  TITLE+= (scanner drivers)
+  DEPENDS+=+hplip
+endef
+
+define Package/hplip-sane/description
+$(call Package/hplip/Default/description)
+
+S.A.N.E backend for HP Scanners
+endef
+
+CONFIGURE_ARGS += \
+	--disable-gui-build \
+	--disable-network-build \
+	--disable-fax-build \
+	--disable-pp-build \
+	--disable-doc-build \
+	--disable-dbus-build \
+	--enable-lite-build
+
 define Package/hplip/conffiles
 /etc/hp/hplip.conf
+endef
+
+define Package/hplip-sane/install
+	$(INSTALL_DIR) $(1)/usr/lib/sane
+	$(CP) $(PKG_BUILD_DIR)/.libs/libsane-hpaio.so* $(1)/usr/lib/sane
+
+	$(INSTALL_DIR) $(1)/etc/sane.d/dll.d/
+	$(INSTALL_DATA) ./files/hplib.conf $(1)/etc/sane.d/dll.d/hplib
+endef
+
+define Package/hplip-sane/conffiles
+/etc/sane.d/dll.d/hplib
 endef
 
 define Package/postinst
@@ -73,3 +107,4 @@ define Package/postinst
 endef
 
 $(eval $(call BuildPackage,hplip))
+$(eval $(call BuildPackage,hplip-sane))
